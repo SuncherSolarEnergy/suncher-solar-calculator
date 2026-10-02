@@ -23,6 +23,10 @@ main{padding:10px 18px 16px}.layout{display:grid;grid-template-columns:1.02fr 1f
 .divider{height:1px;background:#e3ebf2;margin:7px 0 10px}.small{font-size:11px;color:var(--muted);line-height:1.35}
 .lookup-row{display:flex;gap:6px}.lookup-row .input{flex:1}.mini-btn{height:36px;padding:0 11px;border:0;border-radius:6px;background:#e8f0f6;color:var(--navy);font-weight:700;font-size:12px;white-space:nowrap;cursor:pointer}
 .lookup-status{font-size:10px;margin-top:3px;color:var(--muted)}.lookup-status.ok{color:var(--green)}.lookup-status.error{color:#b42318}
+
+.report-details{background:#f7fafc;border:1px solid #dce6ee;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.report-details .section-title{margin-bottom:8px}
+.report-badge{display:inline-block;background:#fff3df;color:#a95d00;border:1px solid #f3c77f;border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800;margin-left:auto}
 .full{grid-column:1/-1}.actions{display:flex;gap:8px;margin-top:6px}.btn{height:42px;border:0;border-radius:7px;padding:0 18px;font-weight:800;font-size:13px;cursor:pointer}
 .primary{background:#063e72;color:#fff;flex:1}.secondary{background:#fff;color:#063e72;border:1px solid #9eb5c9}.orange{background:var(--orange);color:#fff}
 .backup{display:grid;grid-template-columns:1fr 1fr;gap:7px}.app{border:1px solid #d9e4ed;border-radius:6px;padding:7px;font-size:11px}.app label{display:flex;align-items:center;gap:5px;font-weight:700}
@@ -58,6 +62,19 @@ main{padding:10px 18px 16px}.layout{display:grid;grid-template-columns:1.02fr 1f
 <div class="card-body">
 <div class="input-grid">
 <div>
+
+<div class="report-details">
+  <div class="section-title">
+    <span class="num">▤</span>Project / Customer Details
+    <span class="report-badge">OPTIONAL — USED IN PDF REPORT</span>
+  </div>
+  <div class="input-grid">
+    <div class="field"><label>Customer / Company Name</label><input id="customerName" class="input" type="text" placeholder="e.g. Juan Dela Cruz / ABC Company"></div>
+    <div class="field"><label>Project Name</label><input id="projectName" class="input" type="text" placeholder="e.g. Residential Solar Project"></div>
+    <div class="field"><label>Contact Number</label><input id="customerPhone" class="input" type="tel" placeholder="+63 9XX XXX XXXX"></div>
+    <div class="field"><label>Email Address</label><input id="customerEmail" class="input" type="email" placeholder="customer@email.com"></div>
+  </div>
+</div>
 <div class="section-title"><span class="num">▣</span>1. Your Electricity Usage</div>
 <div class="toggle"><button id="billMode" class="active" type="button">Monthly Bill (₱)</button><button id="kwhMode" type="button">Monthly Consumption (kWh)</button></div>
 <div id="billBox" class="field"><label>Average Monthly Electricity Bill (₱)</label><input id="bill" class="input" type="number" min="0" value="16000"></div>
@@ -238,7 +255,6 @@ $('quoteBtn').addEventListener('click',()=>{
 
 function downloadPdfReport(){
  try{
-  // Recalculate first so the PDF always reflects the current inputs.
   calculate();
 
   if(!window.jspdf || !window.jspdf.jsPDF){
@@ -248,10 +264,8 @@ function downloadPdfReport(){
 
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:'mm',format:'a4'});
-  const pageW=210;
-  const margin=16;
-  const contentW=pageW-(margin*2);
-  let y=18;
+  const pageW=210, pageH=297, margin=15, contentW=pageW-(margin*2);
+  let y=48;
 
   const val=id=>(($(id)?.textContent)||'—').trim();
   const input=id=>(($(id)?.value)||'').trim();
@@ -260,55 +274,116 @@ function downloadPdfReport(){
     if(!el || el.selectedIndex<0) return '';
     return (el.options[el.selectedIndex]?.text||'').trim();
   };
+  const customer=input('customerName')||'Prospective Customer';
+  const project=input('projectName')||'Solar Power System Project';
+  const phone=input('customerPhone')||'Not provided';
+  const email=input('customerEmail')||'Not provided';
+  const location=input('loc')||'Not specified';
+  const type=$('systemType').value;
+  const typeText=selectedText('systemType');
+  const now=new Date();
+  const dateStamp=now.toISOString().slice(0,10);
+  const ref='SSE-'+dateStamp.replaceAll('-','')+'-'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  const reportDate=now.toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
 
-  function addText(text,size=10,bold=false,x=margin){
-    doc.setFont('helvetica',bold?'bold':'normal');
-    doc.setFontSize(size);
-    const lines=doc.splitTextToSize(String(text),contentW-(x-margin));
-    doc.text(lines,x,y);
-    y += lines.length*(size*0.45)+3;
+  function ensureSpace(h=10){
+    if(y+h>274){
+      doc.addPage();
+      y=20;
+      drawPageHeader();
+    }
+  }
+
+  function drawPageHeader(){
+    doc.setDrawColor(218,228,237);
+    doc.line(margin,13,pageW-margin,13);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(6,59,112);
+    doc.text('SUNCHER SOLAR ENERGY',margin,10);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(96,120,148);
+    doc.text(ref,pageW-margin,10,{align:'right'});
   }
 
   function section(title){
-    if(y>265){doc.addPage();y=18;}
+    ensureSpace(14);
     doc.setFillColor(6,59,112);
-    doc.rect(margin,y-5,contentW,8,'F');
+    doc.roundedRect(margin,y-5,contentW,8,1,1,'F');
     doc.setTextColor(255,255,255);
     doc.setFont('helvetica','bold');
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.text(title,margin+3,y);
-    doc.setTextColor(18,59,105);
-    y+=8;
+    y+=9;
   }
 
   function row(label,value){
-    if(y>276){doc.addPage();y=18;}
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(18,59,105);
+    const lines=doc.splitTextToSize(String(value||'—'),contentW-62);
+    ensureSpace(Math.max(6,lines.length*4.2));
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.8); doc.setTextColor(18,59,105);
     doc.text(label,margin,y);
     doc.setFont('helvetica','normal'); doc.setTextColor(35,55,75);
-    const lines=doc.splitTextToSize(String(value||'—'),contentW-58);
-    doc.text(lines,margin+58,y);
-    y+=Math.max(5,lines.length*4.2);
+    doc.text(lines,margin+62,y);
+    y+=Math.max(5.2,lines.length*4.2);
   }
 
-  // Header / branding
+  function metricBox(x,w,label,value,sub){
+    doc.setFillColor(247,250,252);
+    doc.setDrawColor(216,226,235);
+    doc.roundedRect(x,y,w,20,2,2,'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(18,59,105);
+    doc.text(label,x+3,y+5);
+    doc.setFontSize(13); doc.setTextColor(6,59,112);
+    doc.text(value,x+3,y+11);
+    if(sub){
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.8); doc.setTextColor(96,120,148);
+      doc.text(sub,x+3,y+16);
+    }
+  }
+
+  // First-page branded banner using the same Suncher artwork already embedded in the calculator.
+  const banner=document.querySelector('.banner img');
+  if(banner && banner.src){
+    try{ doc.addImage(banner.src,'PNG',0,0,pageW,21); }catch(e){}
+  }
   doc.setFillColor(6,59,112);
-  doc.rect(0,0,pageW,30,'F');
+  doc.rect(0,21,pageW,17,'F');
   doc.setTextColor(255,255,255);
-  doc.setFont('helvetica','bold'); doc.setFontSize(19);
-  doc.text('SUNCHER SOLAR ENERGY',margin,12);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10);
-  doc.text('Solar Power System Preliminary Report',margin,19);
-  doc.text('www.suncherenergy.com',margin,25);
-  y=39;
+  doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text('PRELIMINARY SOLAR PROPOSAL & BUDGETARY ESTIMATE',margin,28);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+  doc.text('For planning purposes only — final quotation subject to site assessment and engineering review.',margin,34);
+
+  y=46;
   doc.setTextColor(18,59,105);
+  doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text(project,margin,y);
+  y+=7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(76,96,116);
+  doc.text('Prepared for: '+customer,margin,y);
+  doc.text('Report Ref: '+ref,pageW-margin,y,{align:'right'});
+  y+=5;
+  doc.text('Location: '+location,margin,y);
+  doc.text('Report Date: '+reportDate,pageW-margin,y,{align:'right'});
+  y+=10;
 
-  const now=new Date();
-  const reportDate=now.toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
-  addText('Report Date: '+reportDate,9,false);
-  addText('This report is generated from the Suncher Solar Energy Calculator and is for preliminary planning only.',9,false);
+  // Executive summary
+  section('1. PROJECT SUMMARY');
+  row('Customer / Company',customer);
+  row('Project Name',project);
+  row('Project Location',location);
+  row('Contact',phone+' | '+email);
+  row('System Configuration',typeText);
 
-  section('SYSTEM ESTIMATE');
+  y+=2;
+  const boxGap=4, boxW=(contentW-boxGap*3)/4;
+  metricBox(margin,boxW,'PV CAPACITY',val('installed'),'Installed');
+  metricBox(margin+(boxW+boxGap),boxW,'PANELS',val('panelCount'),val('panelSub'));
+  metricBox(margin+2*(boxW+boxGap),boxW,'INVERTER',val('inverter'),val('inverterType'));
+  metricBox(margin+3*(boxW+boxGap),boxW,'BATTERY',val('battery'),val('batterySub'));
+  y+=26;
+
+  section('2. SYSTEM ESTIMATE');
   row('Monthly Consumption',val('mConsumption'));
   row('Required PV Capacity',val('pvSize'));
   row('Solar Panels',val('panelCount')+' — '+val('panelSub'));
@@ -317,26 +392,60 @@ function downloadPdfReport(){
   row('Recommended Battery',val('battery')+' — '+val('batterySub'));
   row('Estimated Solar Generation',val('generation')+' / '+val('generationSub'));
   row('Estimated Monthly Savings',val('saving'));
-  row('Estimated CO2 Reduction',val('co2'));
+  row('Estimated CO₂ Reduction',val('co2'));
 
-  section('FINANCIAL ESTIMATE');
-  row('Estimated System Cost',val('cost'));
-  row('Payback Period',val('payback'));
-  row('Annual ROI',val('roi'));
-  row('5-Year Savings',val('fiveYear'));
+  section('3. FINANCIAL SUMMARY');
+  const finY=y;
+  const fw=(contentW-9)/4;
+  const financial=[
+    ['EST. SYSTEM COST',val('cost')],
+    ['PAYBACK PERIOD',val('payback')],
+    ['ANNUAL ROI',val('roi')],
+    ['5-YEAR SAVINGS',val('fiveYear')]
+  ];
+  financial.forEach((m,i)=>{
+    const x=margin+i*(fw+3);
+    doc.setFillColor(i===0?255:247,i===0?248:250,i===0?240:252);
+    doc.setDrawColor(218,228,237);
+    doc.roundedRect(x,finY,fw,25,2,2,'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(18,59,105);
+    doc.text(m[0],x+3,finY+6);
+    doc.setFontSize(12); doc.setTextColor(6,59,112);
+    doc.text(m[1],x+3,finY+15);
+  });
+  y=finY+32;
 
-  section('PROJECT INPUTS & ASSUMPTIONS');
+  // Cost breakdown derived from the same calculator constants/formula.
+  const panelW=Number(input('panelW')||620);
+  const panels=parseInt((val('panelCount').match(/\d+/)||['0'])[0],10);
+  const inverterW=Number(val('inverter').replace(/[^\d.]/g,''))*1000;
+  const batteries=type==='grid'?0:Math.max(1,Math.ceil((Number(val('battery').replace(/[^\d.]/g,''))||0)/16));
+  const panelUnit=panelW===620?INV.panel620:INV.panel620*(panelW/620);
+  const panelCost=panels*panelUnit;
+  const inverterCost=inverterW>6200?INV.inverter11:INV.inverter62;
+  const batteryCost=batteries*INV.battery16kwh;
+  const installationCost=inverterW*INSTALLATION_RATE_PER_W;
+  const totalCost=Number(val('cost').replace(/[^\d.]/g,''))||0;
+  const bosCost=Math.max(0,totalCost-panelCost-inverterCost-batteryCost-installationCost);
+
+  section('4. INDICATIVE COST BREAKDOWN');
+  row('Solar Panels',money(panelCost));
+  row('Inverter',money(inverterCost));
+  row('Battery Bank',type==='grid'?'Not applicable':money(batteryCost));
+  row('Balance of System / Accessories',money(bosCost));
+  row('Installation Allowance',money(installationCost));
+  row('Indicative Total',money(totalCost));
+
+  section('5. PROJECT INPUTS & DESIGN ASSUMPTIONS');
   row('Calculation Mode',$('billBox').classList.contains('hidden')?'Monthly Consumption (kWh)':'Monthly Electricity Bill');
-  row('Monthly Bill',input('bill') ? 'PHP '+Number(input('bill')).toLocaleString('en-PH') : 'Not used');
-  row('Monthly Consumption Input',input('kwh') ? Number(input('kwh')).toLocaleString('en-PH')+' kWh' : 'Not used');
+  row('Monthly Bill',input('bill')?'PHP '+Number(input('bill')).toLocaleString('en-PH'):'Not used');
+  row('Monthly Consumption Input',input('kwh')?Number(input('kwh')).toLocaleString('en-PH')+' kWh':'Not used');
   row('Electricity Rate','PHP '+Number(input('rate')||0).toLocaleString('en-PH')+' / kWh');
-  row('Location',input('loc')||'Not specified');
   row('Peak Sun Hours',input('psh')+' hours/day');
   row('Roof Orientation',selectedText('orientation'));
   row('Roof Tilt',input('tilt')+' degrees');
   row('Shading Condition',selectedText('shade'));
-  row('Available Roof Area',input('roof') ? input('roof')+' m2' : 'Not specified');
-  row('System Type',selectedText('systemType'));
+  row('Available Roof Area',input('roof')?input('roof')+' m²':'Not specified');
   row('Preferred Panel Wattage',selectedText('panelW'));
   row('Desired Bill Offset',selectedText('offset'));
   row('Backup Duration',input('hours')+' hours');
@@ -347,38 +456,49 @@ function downloadPdfReport(){
   document.querySelectorAll('.app').forEach(a=>{
     const c=a.querySelector('input[type=checkbox]');
     const q=Number(a.querySelector('.qty')?.value)||0;
-    if(c && c.checked && q>0) selected.push((c.dataset.n||'Load')+' x '+q);
+    if(c && c.checked && q>0) selected.push((c.dataset.n||'Load')+' × '+q);
   });
   row('Selected Backup Loads',selected.length?selected.join(', '):'None selected / grid-tied');
 
-  section('RECOMMENDED CONFIGURATION');
+  section('6. RECOMMENDED CONFIGURATION');
   const configItems=[...document.querySelectorAll('#config li')].map(li=>li.textContent.trim()).filter(Boolean);
-  configItems.forEach(item=>addText('• '+item,9,false));
+  configItems.forEach(item=>row('•',item));
 
-  if(y>260){doc.addPage();y=18;}
-  y+=3;
-  doc.setFillColor(247,147,29);
-  doc.rect(margin,y-5,contentW,0.8,'F');
-  y+=5;
-  addText('IMPORTANT: Results are estimates only. Final system design, equipment selection, pricing, structural requirements, electrical design, battery sizing, permits and installation requirements must be verified through a detailed site assessment and engineering review.',8,false);
+  section('7. NEXT STEPS');
+  row('1','Schedule a site assessment to verify roof structure, orientation, shading, electrical service and installation route.');
+  row('2','Confirm equipment availability, final system architecture, protection devices, mounting requirements and applicable permits.');
+  row('3','Suncher Solar Energy will issue the formal quotation after the required technical and commercial details are confirmed.');
 
-  // Footer on every page.
+  ensureSpace(38);
+  doc.setFillColor(255,248,232);
+  doc.setDrawColor(244,180,0);
+  doc.roundedRect(margin,y,contentW,31,2,2,'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(140,78,0);
+  doc.text('IMPORTANT NOTICE',margin+4,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(90,70,35);
+  const disclaimer='This document is a preliminary planning report generated by the Suncher Solar Energy Calculator. System sizing, energy production, savings, pricing, payback and ROI are estimates. Final design, equipment selection, structural and electrical requirements, permits, installation scope and commercial pricing must be verified through a detailed site assessment and formal quotation.';
+  doc.text(doc.splitTextToSize(disclaimer,contentW-8),margin+4,y+13);
+  y+=38;
+
+  // Footer and page numbers.
   const totalPages=doc.getNumberOfPages();
   for(let p=1;p<=totalPages;p++){
     doc.setPage(p);
+    doc.setDrawColor(220,229,236);
+    doc.line(margin,282,pageW-margin,282);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(96,120,148);
     doc.text('Suncher Solar Energy • Clean Energy Starts Here.',margin,288);
+    doc.text('admin@suncherenergy.com • +63 928 559 3476 • Bacolod City, Philippines',pageW/2,288,{align:'center'});
     doc.text('Page '+p+' of '+totalPages,pageW-margin,288,{align:'right'});
   }
 
-  const safeLocation=(input('loc')||'solar-project').replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'').toLowerCase();
-  const dateStamp=now.toISOString().slice(0,10);
-  doc.save('Suncher-Solar-Report-'+(safeLocation||'solar-project')+'-'+dateStamp+'.pdf');
+  const safeCustomer=(customer||'customer').replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'').toLowerCase();
+  doc.save('Suncher-Solar-Proposal-'+(safeCustomer||'customer')+'-'+dateStamp+'.pdf');
  }catch(err){
   console.error(err);
-  alert('Unable to create the PDF report. Please try again.');
+  alert('Unable to create the PDF proposal. Please try again.');
  }
 }
 
