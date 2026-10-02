@@ -568,11 +568,11 @@ function downloadPdfReport(){
     doc.setDrawColor(220,229,236);
     doc.line(margin,282,pageW-margin,282);
     doc.setFont('helvetica','normal');
-    doc.setFontSize(7.5);
+    doc.setFontSize(6.8);
     doc.setTextColor(96,120,148);
-    doc.text('Suncher Solar Energy • Clean Energy Starts Here.',margin,288);
-    doc.text('admin@suncherenergy.com • +63 928 559 3476 • Bacolod City, Philippines',pageW/2,288,{align:'center'});
-    doc.text('Page '+p+' of '+totalPages,pageW-margin,288,{align:'right'});
+    doc.text('Suncher Solar Energy • Clean Energy Starts Here.',margin,287);
+    doc.text('Page '+p+' of '+totalPages,pageW-margin,287,{align:'right'});
+    doc.text('admin@suncherenergy.com • +63 928 559 3476 • Bacolod City, Philippines',pageW/2,292,{align:'center'});
   }
 
   const safeCustomer=(customer||'customer').replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'').toLowerCase();
