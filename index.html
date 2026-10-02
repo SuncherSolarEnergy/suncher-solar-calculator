@@ -27,6 +27,21 @@ main{padding:10px 18px 16px}.layout{display:grid;grid-template-columns:1.02fr 1f
 .report-details{background:#f7fafc;border:1px solid #dce6ee;border-radius:8px;padding:10px 12px;margin-bottom:10px}
 .report-details .section-title{margin-bottom:8px}
 .report-badge{display:inline-block;background:#fff3df;color:#a95d00;border:1px solid #f3c77f;border-radius:20px;padding:3px 8px;font-size:10px;font-weight:800;margin-left:auto}
+.privacy-card{background:#f7fafc;border:1px solid #d7e3ec;border-radius:8px;padding:12px;margin-top:12px}
+.privacy-head{display:flex;align-items:center;gap:8px;color:#063e72;font-weight:800;font-size:14px;margin-bottom:5px}
+.privacy-lock{font-size:18px}
+.privacy-summary{font-size:10.5px;color:#536b82;line-height:1.45;margin:0 0 8px}
+.privacy-card details{margin-top:7px;border-top:1px solid #dde7ee;padding-top:7px}
+.privacy-card summary{cursor:pointer;color:#063e72;font-size:10.5px;font-weight:800}
+.privacy-full{font-size:10px;color:#4f667d;line-height:1.5;margin-top:7px}
+.privacy-full b{color:#173f70}
+.privacy-check{display:flex;gap:7px;align-items:flex-start;margin-top:9px;font-size:10.5px;color:#263f56;line-height:1.4}
+.privacy-check input{margin-top:2px}
+.privacy-actions-note{font-size:9.5px;color:#6b7e92;margin-top:7px}
+.privacy-error{display:none;margin-top:7px;padding:7px 9px;border-radius:6px;background:#fff0f0;color:#a61b1b;font-size:10.5px}
+.privacy-error.active{display:block}
+.clear-personal{margin-top:7px;height:30px;padding:0 10px;border:1px solid #cdd9e3;border-radius:6px;background:#fff;color:#063e72;font-weight:700;font-size:10px;cursor:pointer}
+
 .full{grid-column:1/-1}.actions{display:flex;gap:8px;margin-top:6px}.btn{height:42px;border:0;border-radius:7px;padding:0 18px;font-weight:800;font-size:13px;cursor:pointer}
 .primary{background:#063e72;color:#fff;flex:1}.secondary{background:#fff;color:#063e72;border:1px solid #9eb5c9}.orange{background:var(--orange);color:#fff}
 .backup{display:grid;grid-template-columns:1fr 1fr;gap:7px}.app{border:1px solid #d9e4ed;border-radius:6px;padding:7px;font-size:11px}.app label{display:flex;align-items:center;gap:5px;font-weight:700}
@@ -63,17 +78,7 @@ main{padding:10px 18px 16px}.layout{display:grid;grid-template-columns:1.02fr 1f
 <div class="input-grid">
 <div>
 
-<div class="report-details">
-  <div class="section-title">
-    <span class="num">▤</span>Project / Customer Details
-    <span class="report-badge">OPTIONAL — USED IN PDF REPORT</span>
-  </div>
-  <div class="input-grid">
-    <div class="field"><label>Customer / Company Name</label><input id="customerName" class="input" type="text" placeholder="e.g. Juan Dela Cruz / ABC Company"></div>
-    <div class="field"><label>Project Name</label><input id="projectName" class="input" type="text" placeholder="e.g. Residential Solar Project"></div>
-    <div class="field"><label>Contact Number</label><input id="customerPhone" class="input" type="tel" placeholder="+63 9XX XXX XXXX"></div>
-    <div class="field"><label>Email Address</label><input id="customerEmail" class="input" type="email" placeholder="customer@email.com"></div>
-  </div>
+
 </div>
 <div class="section-title"><span class="num">▣</span>1. Your Electricity Usage</div>
 <div class="toggle"><button id="billMode" class="active" type="button">Monthly Bill (₱)</button><button id="kwhMode" type="button">Monthly Consumption (kWh)</button></div>
@@ -83,7 +88,7 @@ main{padding:10px 18px 16px}.layout{display:grid;grid-template-columns:1.02fr 1f
 </div>
 <div>
 <div class="section-title"><span class="num">📍</span>2. Location &amp; Site Details</div>
-<div class="field"><label>Location (City / Province)</label><div class="lookup-row"><input id="loc" class="input" value="Bacolod City, Negros Occidental"><button class="mini-btn" type="button" id="lookupBtn">Find</button></div><div id="lookupStatus" class="lookup-status">Enter the project location, then click Find.</div></div>
+<div class="field"><label>Location (City / Province)</label><div class="lookup-row"><input id="loc" class="input" value="Bacolod City, Negros Occidental"><button class="mini-btn" type="button" id="lookupBtn">Find</button></div><div id="lookupStatus" class="lookup-status">Use City / Province only. Do not enter a house number or other unnecessary personal information.</div></div>
 <div class="input-grid">
 <div class="field"><label>Peak Sun Hours (PSH)</label><input id="psh" class="input" type="number" min="1" step=".1" value="4.8"></div>
 <div class="field"><label>Roof Orientation</label><select id="orientation" class="select"><option>South (Best)</option><option>East / West</option><option>North</option></select></div>
@@ -143,6 +148,52 @@ main{padding:10px 18px 16px}.layout{display:grid;grid-template-columns:1.02fr 1f
 <div class="fin-item"><small>5-Year Savings</small><strong id="fiveYear">—</strong></div>
 </div>
 <div class="config"><h3>Recommended Configuration</h3><ul id="config"><li>—</li></ul></div>
+
+<div class="privacy-card" id="privacyQuoteCard">
+  <div class="privacy-head"><span class="privacy-lock">🔒</span>Request a Formal Quotation</div>
+  <p class="privacy-summary">
+    To prepare and respond to a quotation request, Suncher may process the contact and project information you choose to provide below.
+    The calculator itself performs the sizing in your browser; these contact details are not stored by this calculator in browser storage.
+  </p>
+
+  <div class="input-grid">
+    <div class="field"><label>Customer / Company Name</label><input id="customerName" class="input" type="text" maxlength="120" autocomplete="name" placeholder="e.g. Juan Dela Cruz / ABC Company"></div>
+    <div class="field"><label>Project Name (Optional)</label><input id="projectName" class="input" type="text" maxlength="160" placeholder="e.g. Residential Solar Project"></div>
+    <div class="field"><label>Contact Number</label><input id="customerPhone" class="input" type="tel" maxlength="40" autocomplete="tel" placeholder="+63 9XX XXX XXXX"></div>
+    <div class="field"><label>Email Address</label><input id="customerEmail" class="input" type="email" maxlength="160" autocomplete="email" placeholder="customer@email.com"></div>
+  </div>
+
+  <button class="clear-personal" type="button" id="clearPersonalBtn">Clear Customer Details</button>
+
+  <details>
+    <summary>Read Suncher Calculator Privacy Notice</summary>
+    <div class="privacy-full">
+      <p><b>Personal Information Controller.</b> Suncher Solar Energy (business/brand name) is responsible for the personal information collected through this quotation feature. Privacy inquiries may be sent to <b>admin@suncherenergy.com</b>. The registered legal entity name and designated privacy/DPO contact should be inserted here by Suncher before publication if different.</p>
+      <p><b>Information collected.</b> Customer/company name, project name, contact number, email address, project location (City/Province), and solar-project information entered into the calculator, such as electricity consumption, electricity rate, roof/site information, system preferences, backup requirements and selected loads.</p>
+      <p><b>Purpose.</b> To calculate and explain an indicative solar system, generate a customer-facing PDF report, respond to quotation requests, conduct site assessment follow-up, and prepare a formal quotation when requested.</p>
+      <p><b>Basis.</b> For a quotation request, the processing is intended to be necessary to take steps at the request of the data subject before a possible contract, consistent with Section 12(b) of the Data Privacy Act. Optional marketing communications use consent and are separate from quotation processing.</p>
+      <p><b>How processing works.</b> The calculator performs its sizing calculations in the visitor's browser. The quotation button opens the visitor's email application so the visitor can review the message before sending it to Suncher. The current calculator code does not use browser geolocation, localStorage or a calculator form-submission API.</p>
+      <p><b>Recipients.</b> Information may be accessed by authorized Suncher personnel and, where necessary for the stated purpose, service providers supporting quotation, communication, hosting or related business operations, subject to applicable privacy and security requirements.</p>
+      <p><b>Retention.</b> Suncher's proposed operational retention period for quotation/inquiry information is up to <b>12 months after the inquiry is closed</b>, unless a longer period is required or permitted by applicable law or necessary for legal claims, audits or other legitimate purposes. This period should be formally approved in Suncher's privacy/retention policy before publication.</p>
+      <p><b>Data-subject rights.</b> Subject to applicable law and conditions, you may have the right to be informed, access, correct/rectify, object, request erasure or blocking, request data portability, and lodge a complaint with the National Privacy Commission.</p>
+      <p><b>Sensitive information.</b> Please do not enter government ID numbers, bank/card details, passwords, health information or other sensitive personal information into this calculator. Only information reasonably necessary for the solar inquiry should be provided.</p>
+      <p><b>Notice date.</b> 2 October 2026.</p>
+    </div>
+  </details>
+
+  <label class="privacy-check">
+    <input id="quotePrivacyAck" type="checkbox">
+    <span>I have read and understood the Privacy Notice, and I understand that Suncher Solar Energy may process the information I provide to respond to my quotation request.</span>
+  </label>
+
+  <label class="privacy-check">
+    <input id="marketingOptIn" type="checkbox">
+    <span>Optional: I would like to receive future Suncher Solar Energy promotions, product updates or other marketing communications.</span>
+  </label>
+
+  <div class="privacy-actions-note">The quotation email will open in your email application for your review before you send it.</div>
+  <div class="privacy-error" id="privacyError">Please provide your name, at least one contact method (email or phone), and acknowledge the Privacy Notice before requesting a quotation.</div>
+</div>
 <div class="dashboard-actions"><button class="btn orange" type="button" id="quoteBtn">▤ REQUEST A QUOTATION</button><button class="btn secondary" type="button" id="contactBtn">✉ CONTACT US</button><button class="btn secondary" type="button" id="pdfBtn">⇩ DOWNLOAD PDF REPORT</button></div>
 </div></section>
 </div></main>
@@ -249,8 +300,36 @@ $('lookupBtn').addEventListener('click',lookupLocation);
 $('calcBtn').addEventListener('click',calculate);
 $('resetBtn').addEventListener('click',()=>location.reload());
 $('quoteBtn').addEventListener('click',()=>{
- const body=`Hello Suncher Solar Energy,\n\nPlease contact me for a quotation based on my solar calculator estimate.\n\nLocation: ${$('loc').value}\nSystem type: ${$('systemType').value}\nEstimated PV: ${$('pvSize').textContent}\nPanels: ${$('panelCount').textContent}\nInverter: ${$('inverter').textContent}\nBattery: ${$('battery').textContent}`;
- location.href='mailto:admin@suncherenergy.com?subject='+encodeURIComponent('Suncher Solar Quotation Request')+'&body='+encodeURIComponent(body);
+ const customer=$('customerName').value.trim();
+ const project=$('projectName').value.trim();
+ const phone=$('customerPhone').value.trim();
+ const email=$('customerEmail').value.trim();
+ const acknowledged=$('quotePrivacyAck').checked;
+ const err=$('privacyError');
+ if(!customer || (!phone && !email) || !acknowledged){
+   err.classList.add('active');
+   err.scrollIntoView({behavior:'smooth',block:'center'});
+   return;
+ }
+ err.classList.remove('active');
+ const body=`Hello Suncher Solar Energy,
+
+Please contact me for a formal quotation based on my solar calculator estimate.
+
+Customer / Company: ${customer}
+Project Name: ${project||'Not provided'}
+Contact Number: ${phone||'Not provided'}
+Email: ${email||'Not provided'}
+Location: ${$('loc').value}
+System type: ${$('systemType').value}
+Estimated PV: ${$('pvSize').textContent}
+Panels: ${$('panelCount').textContent}
+Inverter: ${$('inverter').textContent}
+Battery: ${$('battery').textContent}
+Estimated System Cost: ${$('cost').textContent}
+
+Privacy acknowledgement: I have read and understood the Suncher Solar Energy Calculator Privacy Notice.`; 
+ location.href='mailto:admin@suncherenergy.com?subject='+encodeURIComponent('Suncher Solar Quotation Request - '+(project||customer))+'&body='+encodeURIComponent(body);
 });
 
 function downloadPdfReport(){
@@ -373,6 +452,8 @@ function downloadPdfReport(){
   row('Project Name',project);
   row('Project Location',location);
   row('Contact',phone+' | '+email);
+  row('Privacy Notice','This report was generated in the visitor’s browser. Personal details are included only when entered by the user.');
+
   row('System Configuration',typeText);
 
   y+=2;
@@ -503,6 +584,13 @@ function downloadPdfReport(){
 }
 
 $('contactBtn').addEventListener('click',()=>location.href='mailto:admin@suncherenergy.com');
+$('clearPersonalBtn').addEventListener('click',()=>{
+ ['customerName','projectName','customerPhone','customerEmail'].forEach(id=>$(id).value='');
+ $('quotePrivacyAck').checked=false;
+ $('marketingOptIn').checked=false;
+ $('privacyError').classList.remove('active');
+});
+
 $('pdfBtn').addEventListener('click',downloadPdfReport);
 calculate();
 </script>
